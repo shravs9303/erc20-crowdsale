@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ERC20 Crowdsale</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+</head>
+<body>
+  <h1>ERC20 Crowdsale</h1>
+  <button onclick="connectWallet()">Connect Wallet</button>
+  <p id="account"></p>
+
+  <input id="ethAmount" type="number" placeholder="ETH to spend">
+  <button onclick="buyTokens()">Buy Tokens</button>
+  <p id="status"></p>
+
+  <script>
+    let provider, signer, crowdsale;
+
+    const crowdsaleAddress = "PASTE_CROWDSALE_ADDRESS_HERE";
+    const crowdsaleAbi = [
+      "function buyTokens() external payable",
+      "function raised() view returns (uint256)"
+    ];
+
+    async function connectWallet() {
+      await window.ethereum.request({ method: "eth_requestAccounts" });
+      provider = new ethers.BrowserProvider(window.ethereum);
+      signer = await provider.getSigner();
+      document.getElementById("account").innerText = "Connected: " + (await signer.getAddress());
+      crowdsale = new ethers.Contract(crowdsaleAddress, crowdsaleAbi, signer);
+    }
+
+    async function buyTokens() {
+      const ethAmount = document.getElementById("ethAmount").value;
+      try {
+        const tx = await crowdsale.buyTokens({ value: ethers.parseEther(ethAmount) });
+        await tx.wait();
+        document.getElementById("status").innerText = "Bought tokens successfully!";
+      } catch (err) {
+        document.getElementById("status").innerText = "Error: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
